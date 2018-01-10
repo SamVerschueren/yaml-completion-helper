@@ -35,7 +35,7 @@ export default class CompletionHelper {
 
 		const value = line.split(':')[1].trim();
 
-		return value.length > 0 && / $/.test(line);
+		return value.length > 0 && (/ $/.test(line) || value.includes(' '));
 	}
 
 	/**

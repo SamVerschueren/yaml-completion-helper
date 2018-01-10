@@ -101,6 +101,20 @@ test('should return empty array if already completed', t => {
 	t.deepEqual(result, []);
 });
 
+test('should return empty array if already completed', t => {
+	const result = provider.complete([
+		'# Comment',
+		'',
+		'hello: world',
+		'foo: 🌈 🌈'
+	].join('\n'), {
+		column: 9,
+		lineNumber: 4
+	});
+
+	t.deepEqual(result, []);
+});
+
 test('completion should work with indented content', t => {
 	const result = provider.complete([
 		'    # Comment',
