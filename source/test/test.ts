@@ -1,4 +1,5 @@
 import test from 'ava';
+import {complete} from './helpers/utils';
 import CompletionHelper from '..';
 
 const provider = new CompletionHelper([
@@ -20,15 +21,29 @@ const provider = new CompletionHelper([
 ]);
 
 test('return all keywords if line is empty', t => {
-	const result = provider.complete([
-		'# Comment',
-		'',
-		'hello: world',
-		''
-	].join('\n'), {
-		column: 1,
-		lineNumber: 4
-	});
+	const result = complete(provider, `
+		# Comment
+
+		hello: world
+		^
+	`);
+
+	t.deepEqual(result, [
+		{
+			name: 'foo',
+			type: 'keyword',
+			description: 'foo bar'
+		}
+	]);
+});
+
+test('return all keywords if line already started but has no value', t => {
+	const result = complete(provider, `
+		# Comment
+
+		hello: world
+		fo^
+	`);
 
 	t.deepEqual(result, [
 		{
@@ -40,24 +55,18 @@ test('return all keywords if line is empty', t => {
 });
 
 test('return empty list if in comment', t => {
-	const result = provider.complete('#', {
-		column: 2,
-		lineNumber: 1
-	});
+	const result = complete(provider, '#^');
 
 	t.deepEqual(result, []);
 });
 
 test('return the values of an existing keyword', t => {
-	const result = provider.complete([
-		'# Comment',
-		'',
-		'hello: world',
-		'foo: '
-	].join('\n'), {
-		column: 6,
-		lineNumber: 4
-	});
+	const result = complete(provider, `
+		# Comment
+
+		hello: world
+		foo: ^
+	`);
 
 	t.deepEqual(result, [
 		{
@@ -74,57 +83,34 @@ test('return the values of an existing keyword', t => {
 });
 
 test('unknown keyword returns empty array', t => {
-	const result = provider.complete([
-		'# Comment',
-		'',
-		'hello: ',
-		'foo: 🌈'
-	].join('\n'), {
-		column: 8,
-		lineNumber: 3
-	});
+	const result = complete(provider, `
+		# Comment
+
+		hello: ^
+		foo: 🌈
+	`);
 
 	t.deepEqual(result, []);
 });
 
 test('should return empty array if already completed', t => {
-	const result = provider.complete([
-		'# Comment',
-		'',
-		'hello: world',
-		'foo: 🌈 '
-	].join('\n'), {
-		column: 8,
-		lineNumber: 4
-	});
+	const result = complete(provider, `
+		# Comment
 
-	t.deepEqual(result, []);
-});
-
-test('should return empty array if already completed', t => {
-	const result = provider.complete([
-		'# Comment',
-		'',
-		'hello: world',
-		'foo: 🌈 🌈'
-	].join('\n'), {
-		column: 9,
-		lineNumber: 4
-	});
+		hello: world
+		foo: 🌈 ^
+	`);
 
 	t.deepEqual(result, []);
 });
 
 test('completion should work with indented content', t => {
-	const result = provider.complete([
+	const result = complete(provider, [
 		'    # Comment',
 		'',
 		'    hello: world',
-		'    foo: '
-	].join('\n'), {
-		column: 6,
-		lineNumber: 4
-	});
+		'    foo: ^'
+	].join('\n'));
 
 	t.deepEqual(result, [
 		{
