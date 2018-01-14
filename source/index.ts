@@ -16,8 +16,13 @@ export default class CompletionHelper {
 		return line.trim()[0] === '#';
 	}
 
+	private isEmpty(line: string) {
+		return line.trim().length === 0;
+	}
+
 	private isRootNode(line: string) {
-		return line.charAt(0) !== ' ';
+		// A root node is a node which does not start with whitespace
+		return !/^[\sS]/.test(line);
 	}
 
 	private getKey(line: string) {
@@ -25,7 +30,21 @@ export default class CompletionHelper {
 			return;
 		}
 
-		return line.split(':')[0].trim();
+		return line.split(':')[0].trim().replace(/^[\sS\-]+/, '');
+	}
+
+	private getUsedKeys(content: string) {
+		return new Set(content.match(/^([^#\sS].*?)(?=:)/gm) || []);
+	}
+
+	private getIndentation(line: string) {
+		const result = /^([\sS\-])*/.exec(line);
+
+		return result ? result[0].length : 0;
+	}
+
+	private startOfBlock(line: string) {
+		return line.trim()[0] === '-';
 	}
 
 	private hasValue(line: string) {
@@ -36,6 +55,75 @@ export default class CompletionHelper {
 		const value = line.split(':')[1].trim();
 
 		return value.length > 0 && (/ $/.test(line) || value.includes(' '));
+	}
+
+	private pathFromRoot(lines: string[], position: Position) {
+		// Get indentation of the line of the cursor
+		let indentation = -1;
+
+		let i = position.lineNumber - 1;
+
+		const path: string[] = [];
+
+		while (!this.isRootNode(lines[i])) {
+			// Get the indentation of the line
+			const lineIndentation = this.getIndentation(lines[i]);
+
+			if (lineIndentation !== indentation) {
+				indentation = lineIndentation;
+
+				const key = this.getKey(lines[i]);
+
+				if (key) {
+					path.unshift(key);
+				}
+			}
+
+			i--;
+
+			while (this.isComment(lines[i]) || this.isEmpty(lines[i])) {
+				// Skip all the lines which are comments or which are empty
+				i--;
+			}
+		}
+
+		const rootKey = this.getKey(lines[i]);
+
+		if (rootKey) {
+			path.unshift(rootKey);
+		}
+
+		return path;
+	}
+
+	private getBlock(lines: string[], position: Position) {
+		// Get indentation of the line of the cursor
+		let startLine = position.lineNumber - 1;
+		let endLine = position.lineNumber - 1;
+
+		while (!this.startOfBlock(lines[startLine])) {
+			startLine--;
+		}
+
+		const indentation = this.getIndentation(lines[position.lineNumber - 1]);
+
+		while (indentation === this.getIndentation(lines[endLine])) {
+			endLine++;
+
+			if (endLine >= lines.length || this.startOfBlock(lines[endLine])) {
+				break;
+			}
+
+			while (this.isComment(lines[endLine]) || this.isEmpty(lines[endLine])) {
+				endLine++;
+
+				if (endLine >= lines.length) {
+					break;
+				}
+			}
+		}
+
+		return lines.slice(startLine, endLine).join('\n').replace(/^[\sS-]+/, '');
 	}
 
 	/**
@@ -57,8 +145,38 @@ export default class CompletionHelper {
 		}
 
 		if (!this.isRootNode(currentLine)) {
-			// Currently, we only parse root nodes
-			return [];
+			// We are not parsing a root node
+			const path = this.pathFromRoot(lines, position);
+
+			if (path.length === 0) {
+				return [];
+			}
+
+			let root = this.completionMap.get(path.shift() as string);
+
+			while (path.length > 0 && root && root.values) {
+				const part = path.shift();
+
+				root = root.values.find(x => x.name === part);
+			}
+
+			if (!root || !root.values) {
+				return [];
+			}
+
+			const hasKey = this.getKey(currentLine) !== undefined;
+			let keys = new Set();
+
+			if (!hasKey) {
+				// Get the block at the current position
+				const block = this.getBlock(lines, position);
+
+				keys = this.getUsedKeys(block);
+			}
+
+			return root.values
+				.filter(completion => !keys.has(completion.name))
+				.map(completion => mapResult(completion, completion.type ? 'keyword' : 'value'));
 		}
 
 		const key = this.getKey(currentLine);
@@ -66,7 +184,7 @@ export default class CompletionHelper {
 		if (key) {
 			const keyword = this.completionMap.get(key);
 
-			if (!keyword || !keyword.values || this.hasValue(currentLine)) {
+			if (!keyword || !keyword.values || this.hasValue(currentLine) || keyword.type === 'array') {
 				return [];
 			}
 
@@ -74,7 +192,7 @@ export default class CompletionHelper {
 				.map(value => mapResult(value, 'value'));
 		}
 
-		const usedKeys = new Set(normalizedContent.match(/^([^#\sS].*?)(?=:)/gm) || []);
+		const usedKeys = this.getUsedKeys(normalizedContent);
 
 		return this.completions
 			.filter(completion => !usedKeys.has(completion.name))
