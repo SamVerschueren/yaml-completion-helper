@@ -132,7 +132,7 @@ export default class CompletionHelper {
 
 	private getObjectBlock(lines: string[], position: Position) {
 		// Get indentation of the line of the cursor
-		const indentation = this.getIndentation(lines[position.lineNumber]);
+		const indentation = this.getIndentation(lines[position.lineNumber - 1]);
 
 		// Iterate over the lines before the currentline and find the start of this block
 		let startLine = position.lineNumber - 1;
@@ -150,7 +150,8 @@ export default class CompletionHelper {
 			}
 		}
 
-		return redent(lines.slice(startLine, endLine).join('\n'));
+		// Filter out all the empty lines and comments, join the lines and redent
+		return redent(lines.slice(startLine, endLine).filter(line => !this.isCommentOrEmpty(line)).join('\n'));
 	}
 
 	/**

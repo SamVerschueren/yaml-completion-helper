@@ -115,6 +115,25 @@ test('return the keywords inside an object with comment at root level', t => {
 	]);
 });
 
+test('return the keywords inside an object with root level comments below', t => {
+	const result = complete(provider, `
+		foo:
+			value: 🌈
+			^
+
+		# Some comment
+		# Another comment
+	`);
+
+	t.deepEqual(result, [
+		{
+			name: 'bar',
+			type: 'keyword',
+			description: 'Bar description'
+		}
+	]);
+});
+
 test('only return unused values inside an object', t => {
 	const result = complete(provider, `
 		foo:
