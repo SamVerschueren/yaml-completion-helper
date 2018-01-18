@@ -104,7 +104,7 @@ test('return the keywords inside an array with comment at root level', t => {
 		foo:
 			- value: 🌈
 			- value: 🦄
-			# Some comment
+		# Some comment
 			- ^
 	`);
 
