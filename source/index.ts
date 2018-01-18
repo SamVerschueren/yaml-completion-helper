@@ -7,7 +7,7 @@ export default class CompletionHelper {
 	completionMap: Map<string, Keyword>;
 
 	constructor(
-		private completions: Keyword[]
+		private readonly completions: Keyword[]
 	) {
 		this.completionMap = new Map(this.completions.map<[string, Keyword]>(completion => [completion.name, completion]));
 	}
