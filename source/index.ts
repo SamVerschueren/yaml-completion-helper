@@ -20,6 +20,10 @@ export default class CompletionHelper {
 		return line.trim().length === 0;
 	}
 
+	private isCommentOrEmpty(line: string) {
+		return this.isComment(line) || this.isEmpty(line);
+	}
+
 	private isRootNode(line: string) {
 		// A root node is a node which does not start with whitespace
 		return !/^[\sS]/.test(line);
@@ -96,7 +100,7 @@ export default class CompletionHelper {
 		return path;
 	}
 
-	private getBlock(lines: string[], position: Position) {
+	private getArrayBlock(lines: string[], position: Position) {
 		// Get indentation of the line of the cursor
 		let startLine = position.lineNumber - 1;
 		let endLine = position.lineNumber - 1;
@@ -124,6 +128,29 @@ export default class CompletionHelper {
 		}
 
 		return lines.slice(startLine, endLine).join('\n').replace(/^[\sS-]+/, '');
+	}
+
+	private getObjectBlock(lines: string[], position: Position) {
+		// Get indentation of the line of the cursor
+		const indentation = this.getIndentation(lines[position.lineNumber]);
+
+		// Iterate over the lines before the currentline and find the start of this block
+		let startLine = position.lineNumber - 1;
+		let endLine = position.lineNumber - 1;
+
+		while (this.isCommentOrEmpty(lines[startLine - 1]) || this.getIndentation(lines[startLine - 1]) >= indentation) {
+			startLine--;
+		}
+
+		while (this.isCommentOrEmpty(lines[endLine]) || this.getIndentation(lines[endLine]) >= indentation) {
+			endLine++;
+
+			if (endLine >= lines.length) {
+				break;
+			}
+		}
+
+		return redent(lines.slice(startLine, endLine).join('\n'));
 	}
 
 	/**
@@ -169,7 +196,7 @@ export default class CompletionHelper {
 
 			if (!hasKey) {
 				// Get the block at the current position
-				const block = this.getBlock(lines, position);
+				const block = root.type === 'array' ? this.getArrayBlock(lines, position) : this.getObjectBlock(lines, position);
 
 				keys = this.getUsedKeys(block);
 			}
