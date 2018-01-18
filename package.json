@@ -1,48 +1,48 @@
 {
-	"name": "yaml-completion-helper",
-	"version": "0.2.0",
-	"description": "Completion provider helper for Yaml files",
-	"license": "MIT",
-	"repository": "SamVerschueren/yaml-completion-helper",
-	"author": {
-		"name": "Sam Verschueren",
-		"email": "sam.verschueren@gmail.com",
-		"url": "github.com/SamVerschueren"
-	},
-	"main": "dist/index.js",
-	"typings": "dist/index.d.ts",
-	"engines": {
-		"node": ">=4"
-	},
-	"scripts": {
-		"pretest": "npm run compile",
-		"prepublishOnly": "npm run build",
-		"test": "npm run lint && ava dist/test",
-		"lint": "tslint --format stylish --project .",
-		"compile": "npm run clean && tsc",
-		"build": "npm run compile && del dist/test",
-		"clean": "del dist"
-	},
-	"files": [
-		"dist"
-	],
-	"keywords": [
-		"yaml",
-		"completion",
-		"provider",
-		"vscode",
-		"utils",
-		"helper"
-	],
-	"dependencies": {
-		"redent": "^1.0.0"
-	},
-	"devDependencies": {
-		"@types/node": "^8.5.2",
-		"ava": "*",
-		"del-cli": "^1.1.0",
-		"tslint": "^5.9.1",
-		"tslint-xo": "^0.5.0",
-		"typescript": "^2.6.2"
-	}
+  "name": "yaml-completion-helper",
+  "version": "0.2.1",
+  "description": "Completion provider helper for Yaml files",
+  "license": "MIT",
+  "repository": "SamVerschueren/yaml-completion-helper",
+  "author": {
+    "name": "Sam Verschueren",
+    "email": "sam.verschueren@gmail.com",
+    "url": "github.com/SamVerschueren"
+  },
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "pretest": "npm run compile",
+    "prepublishOnly": "npm run build",
+    "test": "npm run lint && ava dist/test",
+    "lint": "tslint --format stylish --project .",
+    "compile": "npm run clean && tsc",
+    "build": "npm run compile && del dist/test",
+    "clean": "del dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "yaml",
+    "completion",
+    "provider",
+    "vscode",
+    "utils",
+    "helper"
+  ],
+  "dependencies": {
+    "redent": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.2",
+    "ava": "*",
+    "del-cli": "^1.1.0",
+    "tslint": "^5.9.1",
+    "tslint-xo": "^0.5.0",
+    "typescript": "^2.6.2"
+  }
 }
