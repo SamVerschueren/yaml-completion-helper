@@ -25,8 +25,8 @@ export default class CompletionHelper {
 	}
 
 	private isRootNode(line: string) {
-		// A root node is a node which does not start with whitespace
-		return !/^[\sS]/.test(line);
+		// A root node is a node which does not start with whitespace or a dash
+		return !/^[\sS\-]/.test(line);
 	}
 
 	private getKey(line: string) {
