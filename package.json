@@ -1,6 +1,6 @@
 {
   "name": "yaml-completion-helper",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Completion provider helper for Yaml files",
   "license": "MIT",
   "repository": "SamVerschueren/yaml-completion-helper",
